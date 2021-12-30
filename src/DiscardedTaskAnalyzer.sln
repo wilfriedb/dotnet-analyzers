@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscardedTaskAnalyzer", "DiscardedTaskAnalyzer\DiscardedTaskAnalyzer\DiscardedTaskAnalyzer.csproj", "{830C4D06-225D-4DE0-8510-7725A49DE182}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscardedTaskAnalyzer.CodeFixes", "DiscardedTaskAnalyzer\DiscardedTaskAnalyzer.CodeFixes\DiscardedTaskAnalyzer.CodeFixes.csproj", "{F0B68B22-A1DB-4A26-AEAF-1DEF7D0B62E9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscardedTaskAnalyzer.Package", "DiscardedTaskAnalyzer\DiscardedTaskAnalyzer.Package\DiscardedTaskAnalyzer.Package.csproj", "{10AD3AFE-2375-491A-AD87-75D71A068E3A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscardedTaskAnalyzer.Test", "DiscardedTaskAnalyzer\DiscardedTaskAnalyzer.Test\DiscardedTaskAnalyzer.Test.csproj", "{1093F6BC-48BC-484A-A8D6-A463E9A11B64}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscardedTaskAnalyzer.Vsix", "DiscardedTaskAnalyzer\DiscardedTaskAnalyzer.Vsix\DiscardedTaskAnalyzer.Vsix.csproj", "{54C06690-A691-4169-8323-13AC71FB9FBC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B8212EEA-E2B1-4A53-925E-02CC04E342F9}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{830C4D06-225D-4DE0-8510-7725A49DE182}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{830C4D06-225D-4DE0-8510-7725A49DE182}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{830C4D06-225D-4DE0-8510-7725A49DE182}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{830C4D06-225D-4DE0-8510-7725A49DE182}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0B68B22-A1DB-4A26-AEAF-1DEF7D0B62E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0B68B22-A1DB-4A26-AEAF-1DEF7D0B62E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0B68B22-A1DB-4A26-AEAF-1DEF7D0B62E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0B68B22-A1DB-4A26-AEAF-1DEF7D0B62E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10AD3AFE-2375-491A-AD87-75D71A068E3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10AD3AFE-2375-491A-AD87-75D71A068E3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10AD3AFE-2375-491A-AD87-75D71A068E3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10AD3AFE-2375-491A-AD87-75D71A068E3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1093F6BC-48BC-484A-A8D6-A463E9A11B64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1093F6BC-48BC-484A-A8D6-A463E9A11B64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1093F6BC-48BC-484A-A8D6-A463E9A11B64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1093F6BC-48BC-484A-A8D6-A463E9A11B64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54C06690-A691-4169-8323-13AC71FB9FBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54C06690-A691-4169-8323-13AC71FB9FBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54C06690-A691-4169-8323-13AC71FB9FBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54C06690-A691-4169-8323-13AC71FB9FBC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4A19A757-6A12-49B7-ABC8-BCAA6503F424}
+	EndGlobalSection
+EndGlobal
