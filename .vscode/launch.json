@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/DiscardedTaskAnalyzer/DiscardedTaskAnalyzer.Test/bin/Debug/net6.0/DiscardedTaskAnalyzer.Test.dll",
+            "program": "${workspaceFolder}/src/DiscardedTaskAnalyzer.Test/bin/Debug/net6.0/DiscardedTaskAnalyzer.Test.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/DiscardedTaskAnalyzer/DiscardedTaskAnalyzer.Test",
+            "cwd": "${workspaceFolder}/src/DiscardedTaskAnalyzer.Test",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false
