@@ -14,7 +14,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DiscardedTaskAnalyzer
+namespace Cursoriam.Analyzers.Codefixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(DiscardedTaskAnalyzerCodeFixProvider)), Shared]
     public class DiscardedTaskAnalyzerCodeFixProvider : CodeFixProvider

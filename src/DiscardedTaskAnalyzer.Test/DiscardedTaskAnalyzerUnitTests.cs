@@ -1,8 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using VerifyCS = DiscardedTaskAnalyzer.Test.CSharpCodeFixVerifier<
-    DiscardedTaskAnalyzer.DiscardedTaskAnalyzerAnalyzer,
-    DiscardedTaskAnalyzer.DiscardedTaskAnalyzerCodeFixProvider>;
+    Cursoriam.Analyzers.DiscardedTaskAnalyzerAnalyzer,
+    Cursoriam.Analyzers.Codefixes.DiscardedTaskAnalyzerCodeFixProvider>;
 
 namespace DiscardedTaskAnalyzer.Test;
 

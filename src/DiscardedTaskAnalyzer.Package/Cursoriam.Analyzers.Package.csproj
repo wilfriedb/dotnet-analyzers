@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>DiscardedTaskAnalyzer</PackageId>
+    <PackageId>Cursoriam.Analyzers</PackageId>
     <PackageVersion>1.0.0.0</PackageVersion>
-    <Authors>wjgbo</Authors>
+    <Authors>wilfriedb</Authors>
     <PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>
     <PackageProjectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</PackageProjectUrl>
     <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>
@@ -27,8 +27,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DiscardedTaskAnalyzer.CodeFixes\DiscardedTaskAnalyzer.CodeFixes.csproj" />
-    <ProjectReference Include="..\DiscardedTaskAnalyzer\DiscardedTaskAnalyzer.csproj" />
+    <ProjectReference Include="..\DiscardedTaskAnalyzer.CodeFixes\Cursoriam.Analyzers.CodeFixes.csproj" />
+    <ProjectReference Include="..\DiscardedTaskAnalyzer\Cursoriam.Analyzers.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,8 +37,8 @@
 
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(OutputPath)\DiscardedTaskAnalyzer.dll" PackagePath="analyzers/dotnet/cs" />
-      <TfmSpecificPackageFile Include="$(OutputPath)\DiscardedTaskAnalyzer.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\Cursoriam.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\Cursoriam.Analyzers.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
     </ItemGroup>
   </Target>
 

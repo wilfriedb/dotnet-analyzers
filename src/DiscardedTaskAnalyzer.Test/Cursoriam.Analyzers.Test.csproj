@@ -21,8 +21,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DiscardedTaskAnalyzer.CodeFixes\DiscardedTaskAnalyzer.CodeFixes.csproj" />
-		<ProjectReference Include="..\DiscardedTaskAnalyzer\DiscardedTaskAnalyzer.csproj" />
+		<ProjectReference Include="..\DiscardedTaskAnalyzer.CodeFixes\Cursoriam.Analyzers.CodeFixes.csproj" />
+		<ProjectReference Include="..\DiscardedTaskAnalyzer\Cursoriam.Analyzers.csproj" />
 	</ItemGroup>
 
 </Project>
