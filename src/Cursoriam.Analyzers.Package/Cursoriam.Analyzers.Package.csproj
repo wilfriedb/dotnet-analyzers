@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DiscardedTaskAnalyzer\Cursoriam.Analyzers.csproj" />
+    <ProjectReference Include="..\Cursoriam.Analyzers\Cursoriam.Analyzers.csproj" />
   </ItemGroup>
 
   <ItemGroup>
