@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscardedTaskAnalyzer.Test
+namespace Cursoriam.Analyzers.Test
 {
     internal class TestSubject
     {

@@ -12,9 +12,10 @@ using System.Threading.Tasks;
 namespace Cursoriam.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class DiscardedTaskAnalyzerAnalyzer : DiagnosticAnalyzer
+    public class DiscardedTaskAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "XA0001";
+       public const string DiagnosticId = "CU0001";
+      // public const string DiagnosticId = "DiscardedTaskAnalyzer";
 
         // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/Localizing%20Analyzers.md for more on localization
         private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));

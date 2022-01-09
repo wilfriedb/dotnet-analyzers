@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
@@ -21,7 +21,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DiscardedTaskAnalyzer.CodeFixes\Cursoriam.Analyzers.CodeFixes.csproj" />
 		<ProjectReference Include="..\DiscardedTaskAnalyzer\Cursoriam.Analyzers.csproj" />
 	</ItemGroup>
 

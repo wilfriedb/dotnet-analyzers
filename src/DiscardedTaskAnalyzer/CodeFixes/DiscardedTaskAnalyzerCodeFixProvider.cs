@@ -14,13 +14,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Cursoriam.Analyzers.Codefixes
+namespace Cursoriam.Analyzers.CodeFixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(DiscardedTaskAnalyzerCodeFixProvider)), Shared]
     public class DiscardedTaskAnalyzerCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds {
-            get { return ImmutableArray.Create(DiscardedTaskAnalyzerAnalyzer.DiagnosticId); }
+            get { return ImmutableArray.Create(DiscardedTaskAnalyzer.DiagnosticId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()

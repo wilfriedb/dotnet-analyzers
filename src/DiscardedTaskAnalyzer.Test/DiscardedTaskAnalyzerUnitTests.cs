@@ -1,10 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
-using VerifyCS = DiscardedTaskAnalyzer.Test.CSharpCodeFixVerifier<
-    Cursoriam.Analyzers.DiscardedTaskAnalyzerAnalyzer,
-    Cursoriam.Analyzers.Codefixes.DiscardedTaskAnalyzerCodeFixProvider>;
+using VerifyCS = Cursoriam.Analyzers.Test.CSharpCodeFixVerifier<
+    Cursoriam.Analyzers.DiscardedTaskAnalyzer,
+    Cursoriam.Analyzers.CodeFixes.DiscardedTaskAnalyzerCodeFixProvider>;
 
-namespace DiscardedTaskAnalyzer.Test;
+namespace Cursoriam.Analyzers.Test;
 
 [TestClass]
 public class DiscardedTaskAnalyzerUnitTest
@@ -68,7 +68,7 @@ namespace ConsoleApplication1
     }
 }";
 
-        var expected = VerifyCS.Diagnostic("DiscardedTaskAnalyzer").WithLocation(0).WithLocation(1); // Location 0 is the {|#0: |} syntax
+        var expected = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0).WithLocation(1); // Location 0 is the {|#0: |} syntax
         await VerifyCS.VerifyCodeFixAsync(test, expected, fixtest);
     }
 }
