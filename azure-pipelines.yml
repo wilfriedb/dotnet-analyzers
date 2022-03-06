@@ -1,14 +1,12 @@
 trigger:
   none
- 
-jobs:
-- job: Build
-  pool:
-    vmImage: 'windows-latest'
 
-- task: VSBuild@1
-  displayName: Build Visual Studio solution
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+
+- task: DotNetCoreCLI@2
   inputs:
-    msbuildArgs: /bl:"$(Build.ArtifactStagingDirectory)/build_logs/msbuild.binlog"
-    platform: Any CPU
-    configuration: Release
+    command: 'build'
+    projects: '*.sln'
