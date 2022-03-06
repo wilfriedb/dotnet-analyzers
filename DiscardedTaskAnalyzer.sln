@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cursoriam.Analyzers.Package
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cursoriam.Analyzers.Test", "src\Cursoriam.Analyzers.Test\Cursoriam.Analyzers.Test.csproj", "{1093F6BC-48BC-484A-A8D6-A463E9A11B64}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cursoriam.Analyzers.Vsix", "src\Cursoriam.Analyzers.Vsix\Cursoriam.Analyzers.Vsix.csproj", "{54C06690-A691-4169-8323-13AC71FB9FBC}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B8212EEA-E2B1-4A53-925E-02CC04E342F9}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -34,10 +32,6 @@ Global
 		{1093F6BC-48BC-484A-A8D6-A463E9A11B64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1093F6BC-48BC-484A-A8D6-A463E9A11B64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1093F6BC-48BC-484A-A8D6-A463E9A11B64}.Release|Any CPU.Build.0 = Release|Any CPU
-		{54C06690-A691-4169-8323-13AC71FB9FBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{54C06690-A691-4169-8323-13AC71FB9FBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{54C06690-A691-4169-8323-13AC71FB9FBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{54C06690-A691-4169-8323-13AC71FB9FBC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
