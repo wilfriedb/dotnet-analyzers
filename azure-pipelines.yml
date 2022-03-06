@@ -1,0 +1,14 @@
+trigger:
+  none
+ 
+jobs:
+- job: Build
+  pool:
+    vmImage: 'windows-latest'
+
+- task: VSBuild@1
+  displayName: Build Visual Studio solution
+  inputs:
+    msbuildArgs: /bl:"$(Build.ArtifactStagingDirectory)/build_logs/msbuild.binlog"
+    platform: Any CPU
+    configuration: Release
