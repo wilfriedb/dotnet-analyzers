@@ -9,7 +9,7 @@ namespace Cursoriam.Analyzers.Test;
 [TestClass]
 public class DiscardedTaskAnalyzerUnitTest
 {
-    //No diagnostics expected to show up
+    // No diagnostics expected to show up
     [TestMethod]
     async public Task TestMethod1Async()
     {
@@ -18,7 +18,7 @@ public class DiscardedTaskAnalyzerUnitTest
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
-    //Diagnostic and CodeFix both triggered and checked for
+    // Diagnostic and CodeFix both triggered and checked for
     [TestMethod]
     public async Task TestMethod2Async()
     {

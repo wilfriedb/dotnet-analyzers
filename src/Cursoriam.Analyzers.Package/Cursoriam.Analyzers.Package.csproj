@@ -10,13 +10,13 @@
   <PropertyGroup>
     <PackageId>Cursoriam.Analyzers</PackageId>
     <PackageVersion>1.0.0.0</PackageVersion>
-    <Authors>wilfriedb</Authors>
+    <Authors>Wilfried Boos</Authors>
     <PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>
     <PackageProjectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</PackageProjectUrl>
     <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>
-    <RepositoryUrl>http://REPOSITORY_URL_HERE_OR_DELETE_THIS_LINE</RepositoryUrl>
+    <RepositoryUrl>https://github.com/wilfriedb/dotnet-analyzers</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Description>DiscardedTaskAnalyzer</Description>
+    <Description>An analyzer that flags discarded Tasks</Description>
     <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
     <Copyright>Copyright</Copyright>
     <PackageTags>DiscardedTaskAnalyzer, analyzers</PackageTags>
