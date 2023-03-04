@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Threading.Tasks;
 using VerifyCS = Cursoriam.Analyzers.Test.CSharpCodeFixVerifier<
     Cursoriam.Analyzers.DiscardedTaskAnalyzer,

@@ -14,8 +14,7 @@ namespace Cursoriam.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DiscardedTaskAnalyzer : DiagnosticAnalyzer
     {
-       public const string DiagnosticId = "CU0001";
-      // public const string DiagnosticId = "DiscardedTaskAnalyzer";
+        public const string DiagnosticId = "CUR0001";
 
         // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/Localizing%20Analyzers.md for more on localization
         private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
@@ -40,7 +39,6 @@ namespace Cursoriam.Analyzers
             context.EnableConcurrentExecution();
 
             // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
-            //   context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.IdentifierName);
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.SimpleAssignmentExpression);
         }
 
@@ -65,7 +63,7 @@ namespace Cursoriam.Analyzers
             {
                 return;
             }
-            // TODO: wat als het in een lambda zit?
+            // TODO: what if the discard is in a lambda?
 
             var extraLocations = new List<Location>();
             var modifiers = method.Modifiers;
