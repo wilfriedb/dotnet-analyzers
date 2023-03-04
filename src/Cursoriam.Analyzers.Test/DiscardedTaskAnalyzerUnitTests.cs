@@ -14,7 +14,7 @@ public class DiscardedTaskAnalyzerUnitTest
     [TestMethod]
     async public Task TestMethod1Async()
     {
-        var test = @"";
+        var test = "";
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -69,7 +69,7 @@ namespace ConsoleApplication1
     }
 }";
 
-        var expected = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0).WithLocation(1); // Location 0 is the {|#0: |} syntax
-        await VerifyCS.VerifyCodeFixAsync(test, expected, fixtest);
+        var expectedDiagnostic = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0).WithLocation(1); // Location 0 is the {|#0: |} syntax
+        await VerifyCS.VerifyCodeFixAsync(test, expectedDiagnostic, fixtest);
     }
 }
