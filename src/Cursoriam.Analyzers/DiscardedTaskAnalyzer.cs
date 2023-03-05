@@ -56,24 +56,28 @@ namespace Cursoriam.Analyzers
             }
 
             // Find also the containing method, and determine its return type.
-            // If it is void, then we must also update it to async Task.
             var ancestors = assignmentExpression.Ancestors();
             var method = ancestors.OfType<MethodDeclarationSyntax>().FirstOrDefault();
             if (method == null)
             {
+                // No containg method
+                // TODO: what if the discard is in a lambda or local function?
                 return;
             }
-            // TODO: what if the discard is in a lambda?
 
             var extraLocations = new List<Location>();
             var modifiers = method.Modifiers;
-            if (modifiers.FirstOrDefault(s => s.IsKind(SyntaxKind.AsyncKeyword)).Value == null)
+            // Check for an async modifier
+            if (!modifiers.Any(s => s.IsKind(SyntaxKind.AsyncKeyword)))
             {
                 // There's no async keyword
                 if (method.ReturnType is PredefinedTypeSyntax methodReturnTypeSyntax)
                 {
+                    // If it is void, then we must also update it to async Task.
                     var returnTypeInfo = context.SemanticModel.GetTypeInfo(methodReturnTypeSyntax);
-                    if (returnTypeInfo.Type?.SpecialType == SpecialType.System_Void)
+                    if (returnTypeInfo.Type?.SpecialType == SpecialType.System_Void
+                        // other type than void? For example int?
+                        )
                     {
                         var voidLocation = methodReturnTypeSyntax.GetLocation();
                         extraLocations.Add(voidLocation);
@@ -82,7 +86,8 @@ namespace Cursoriam.Analyzers
             }
 
             // For discards of type Task, produce a diagnostic.
-            var diagnostic = Diagnostic.Create(Rule, assignmentExpression.GetLocation(), extraLocations);
+            var assignmentLocation = assignmentExpression.GetLocation();
+            var diagnostic = Diagnostic.Create(Rule, assignmentLocation, extraLocations);
             context.ReportDiagnostic(diagnostic);
         }
     }

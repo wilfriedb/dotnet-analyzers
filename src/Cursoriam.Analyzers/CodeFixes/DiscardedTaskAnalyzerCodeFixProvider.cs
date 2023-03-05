@@ -44,6 +44,7 @@ namespace Cursoriam.Analyzers.CodeFixes
             PredefinedTypeSyntax typeSyntax = default;
             if (diagnostic.AdditionalLocations.Any())
             {
+                var location = diagnostic.AdditionalLocations.First();
                 var modifiersSpan = diagnostic.AdditionalLocations.First().SourceSpan;
                 if (!modifiersSpan.IsEmpty)
                 {
@@ -65,13 +66,13 @@ namespace Cursoriam.Analyzers.CodeFixes
         private async Task<Document> AddAwaitAsync(Document document, AssignmentExpressionSyntax assignment, PredefinedTypeSyntax typeSyntax, CancellationToken cancellationToken)
         {
             var expressionSyntax = assignment.Right;
-            var awaitExpressionSyntax = SyntaxFactory.AwaitExpression(expressionSyntax);
+            var awaitExpressionSyntax = SyntaxFactory.AwaitExpression(expressionSyntax).WithTriviaFrom(assignment);
 
-            var nodesToReplace = new List<SyntaxNode>();
-            var lookUpNodes = new Dictionary<SyntaxNode, SyntaxNode>();
+            //var nodesToReplace = new List<SyntaxNode>();
+            //var lookUpNodes = new Dictionary<SyntaxNode, SyntaxNode>();
 
-            nodesToReplace.Add(assignment);
-            lookUpNodes.Add(assignment, awaitExpressionSyntax);
+            //nodesToReplace.Add(assignment);
+            //lookUpNodes.Add(assignment, awaitExpressionSyntax);
 
             var oldRoot = await document.GetSyntaxRootAsync(cancellationToken);
 
