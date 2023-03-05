@@ -48,8 +48,8 @@ namespace Cursoriam.Analyzers.CodeFixes
                 if (!modifiersSpan.IsEmpty)
                 {
                     // Vervang void door Task, voeg async ervoor
-                    var q = root.FindToken(modifiersSpan.Start).Parent.AncestorsAndSelf();
-                    typeSyntax = q.OfType<PredefinedTypeSyntax>().First(); // Of TypeSyntax?
+                    var syntaxNodes = root.FindToken(modifiersSpan.Start).Parent.AncestorsAndSelf();
+                    typeSyntax = syntaxNodes.OfType<PredefinedTypeSyntax>().First(); // Or TypeSyntax?
                 }
             }
 

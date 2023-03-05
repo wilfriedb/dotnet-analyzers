@@ -67,7 +67,7 @@ namespace Cursoriam.Analyzers
 
             var extraLocations = new List<Location>();
             var modifiers = method.Modifiers;
-            if (modifiers.FirstOrDefault(s => s.Kind() == SyntaxKind.AsyncKeyword).Value == null)
+            if (modifiers.FirstOrDefault(s => s.IsKind(SyntaxKind.AsyncKeyword)).Value == null)
             {
                 // There's no async keyword
                 if (method.ReturnType is PredefinedTypeSyntax methodReturnTypeSyntax)
