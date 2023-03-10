@@ -60,7 +60,7 @@ namespace Cursoriam.Analyzers
             var method = ancestors.OfType<MethodDeclarationSyntax>().FirstOrDefault();
             if (method == null)
             {
-                // No containg method
+                // No containing method
                 // TODO: what if the discard is in a lambda or local function?
                 return;
             }
@@ -73,7 +73,7 @@ namespace Cursoriam.Analyzers
                 // There's no async keyword
                 if (method.ReturnType is PredefinedTypeSyntax methodReturnTypeSyntax)
                 {
-                    // If it is void, then we must also update it to async Task.
+                    // We have to add async. If it is void, then we must also update it to Task.
                     var returnTypeInfo = context.SemanticModel.GetTypeInfo(methodReturnTypeSyntax);
                     if (returnTypeInfo.Type?.SpecialType == SpecialType.System_Void
                         // other type than void? For example int?

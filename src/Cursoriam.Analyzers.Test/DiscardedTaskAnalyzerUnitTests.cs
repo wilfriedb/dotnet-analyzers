@@ -38,6 +38,7 @@ namespace ConsoleApplication1
             return Task.CompletedTask;
         }
 
+        // Comment must not disappear
         public {|#1:void|} MethodWithCodeToAnalyze()
         {
             var t = new TestSubject();
@@ -62,6 +63,7 @@ namespace ConsoleApplication1
             return Task.CompletedTask;
         }
 
+        // Comment must not disappear
         async public Task MethodWithCodeToAnalyze()
         {
             var t = new TestSubject();
