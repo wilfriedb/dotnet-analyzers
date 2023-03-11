@@ -3,9 +3,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,10 +59,10 @@ namespace Cursoriam.Analyzers.CodeFixes
             var expressionSyntax = assignment.Right;
             var awaitExpressionSyntax = SyntaxFactory.AwaitExpression(expressionSyntax).WithTriviaFrom(assignment);
 
-            var oldRoot = await document.GetSyntaxRootAsync(cancellationToken);
+            var originalRoot = await document.GetSyntaxRootAsync(cancellationToken);
 
             // First replace the discard with an await
-            var awaitRoot = oldRoot.ReplaceNode(assignment, awaitExpressionSyntax);
+            var awaitRoot = originalRoot.ReplaceNode(assignment, awaitExpressionSyntax);
 
             // Check for method modifiers and return type to adjust
             if (method is null)
@@ -100,37 +97,33 @@ namespace Cursoriam.Analyzers.CodeFixes
 
             // The replace the return type Task or Task<>, if necessary
             MethodDeclarationSyntax newMethod = null;
-            IdentifierNameSyntax taskSyntax = null;
+            IdentifierNameSyntax taskSyntax = SyntaxFactory.IdentifierName("Task");
+            var lt = method.GetLeadingTrivia();
             //       var returnType = method.ReturnType;
             if (returnType is PredefinedTypeSyntax predefinedTypeSyntax)
             {
-                var lt = method.GetLeadingTrivia();
-                taskSyntax = SyntaxFactory.IdentifierName("Task");
                 if (predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
                 {
                     newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(taskSyntax).WithLeadingTrivia(lt); // Also add the trivia again
                 }
                 else
                 {
-                    // Make a generic Task type
-                    var intType = SyntaxFactory.PredefinedType(predefinedTypeSyntax.Keyword);
-                    var syntaxList = SyntaxFactory.SeparatedList<TypeSyntax>(new[] { intType });
+                    // Make a generic Task
+                    var predefinedType = SyntaxFactory.PredefinedType(predefinedTypeSyntax.Keyword);
+                    var syntaxList = SyntaxFactory.SeparatedList<TypeSyntax>(new[] { predefinedTypeSyntax });
                     var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
                     newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType).WithLeadingTrivia(lt); // Also add the trivia again
                 }
             }
             else
             {
-                // Make a gneric Task
+                // Make a generic Task
+                var syntaxList = SyntaxFactory.SeparatedList<TypeSyntax>(new[] { returnType });
+                var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
+                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType).WithLeadingTrivia(lt); // Also add the trivia again
             }
 
             var asyncAwaitRoot = awaitRoot.ReplaceNode(updatedMethod, newMethod);
-            //if (typeSyntax?.Parent is MethodDeclarationSyntax methodSyntax)
-            // {
-
-            // }
-
-            // var newRoot = oldRoot.ReplaceNode(assignment, awaitExpressionSyntax);
 
             return document.WithSyntaxRoot(asyncAwaitRoot);
         }
