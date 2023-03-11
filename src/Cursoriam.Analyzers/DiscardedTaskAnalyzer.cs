@@ -48,46 +48,17 @@ namespace Cursoriam.Analyzers
 
             var identifierName = assignmentExpression.Left;
 
+            // Determine if the identifier is a discard, and if it has the type Task
             var discardSymbol = context.SemanticModel.GetSymbolInfo(identifierName).Symbol as IDiscardSymbol;
-            if (discardSymbol?.Type?.Name != "Task")
+            if (discardSymbol?.Type.Name != "Task")
             {
                 // The assignment is not a discard, or the type is not a Task, no issue for this analyzer.
                 return;
             }
 
-            // Find also the containing method, and determine its return type.
-            var ancestors = assignmentExpression.Ancestors();
-            var method = ancestors.OfType<MethodDeclarationSyntax>().FirstOrDefault();
-            if (method == null)
-            {
-                // No containing method
-                // TODO: what if the discard is in a lambda or local function?
-                return;
-            }
-
-            var extraLocations = new List<Location>();
-            var modifiers = method.Modifiers;
-            // Check for an async modifier
-            if (!modifiers.Any(s => s.IsKind(SyntaxKind.AsyncKeyword)))
-            {
-                // There's no async keyword
-                if (method.ReturnType is PredefinedTypeSyntax methodReturnTypeSyntax)
-                {
-                    // We have to add async. If it is void, then we must also update it to Task.
-                    var returnTypeInfo = context.SemanticModel.GetTypeInfo(methodReturnTypeSyntax);
-                    if (returnTypeInfo.Type?.SpecialType == SpecialType.System_Void
-                        // other type than void? For example int?
-                        )
-                    {
-                        var voidLocation = methodReturnTypeSyntax.GetLocation();
-                        extraLocations.Add(voidLocation);
-                    }
-                }
-            }
-
             // For discards of type Task, produce a diagnostic.
             var assignmentLocation = assignmentExpression.GetLocation();
-            var diagnostic = Diagnostic.Create(Rule, assignmentLocation, extraLocations);
+            var diagnostic = Diagnostic.Create(Rule, assignmentLocation);
             context.ReportDiagnostic(diagnostic);
         }
     }
