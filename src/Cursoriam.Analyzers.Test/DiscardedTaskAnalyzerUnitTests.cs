@@ -214,7 +214,7 @@ internal class TestSubject
 
 
     [TestMethod]
-    [Ignore]
+  //  [Ignore]
     public async Task TestMostSimpleIntCode_OneWarningAndFixAsync()
     {
         var testCode = @"
@@ -229,13 +229,13 @@ internal class TestSubject
         return Task.CompletedTask;
     }
 
-    public {|#1:int|} MethodWithCodeToAnalyze()
+    public int MethodWithCodeToAnalyze()
     {
         var t = new TestSubject();
         {|#0:_ = t.TestMethod()|};
 
         return 0;
-        }
+    }
 }";
 
         var fixedTestCode = @"
@@ -259,7 +259,7 @@ internal class TestSubject
     }
 }";
 
-        var expectedDiagnostic = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0).WithLocation(1); // Location 0 is the {|#0: |} syntax
+        var expectedDiagnostic = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0); // Location 0 is the {|#0: |} syntax
         await VerifyCS.VerifyCodeFixAsync(testCode, expectedDiagnostic, fixedTestCode);
     }
 

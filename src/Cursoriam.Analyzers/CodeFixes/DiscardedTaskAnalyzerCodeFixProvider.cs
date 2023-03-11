@@ -56,6 +56,7 @@ namespace Cursoriam.Analyzers.CodeFixes
             context.RegisterCodeFix(codeAction, diagnostic);
         }
 
+
         private async Task<Document> AddAwaitAsync(Document document, AssignmentExpressionSyntax assignment, MethodDeclarationSyntax method, CancellationToken cancellationToken)
         {
             var expressionSyntax = assignment.Right;
@@ -83,7 +84,15 @@ namespace Cursoriam.Analyzers.CodeFixes
                 return document.WithSyntaxRoot(awaitRoot);
             }
 
-            // Add async to the updated method if necessary
+            var returnType = method.ReturnType;
+            // If the return type is already a Task, don't add the async keyword, because the we have also change the "return"
+            var typeText = returnType.GetText().ToString();
+            if (typeText.StartsWith("Task"))
+            {
+                return document.WithSyntaxRoot(awaitRoot);
+            }
+
+            // Add async to the updated method
             var newModifiers = SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.AsyncKeyword)
             ).AddRange(method.Modifiers.Select(m => m.WithoutTrivia())); // Remove the trivia, otherwise it will end up between the async modifier and the next modifier
@@ -91,16 +100,28 @@ namespace Cursoriam.Analyzers.CodeFixes
 
             // The replace the return type Task or Task<>, if necessary
             MethodDeclarationSyntax newMethod = null;
-            TypeSyntax taskSyntax = null;
-            var returnType = method.ReturnType;
+            IdentifierNameSyntax taskSyntax = null;
+            //       var returnType = method.ReturnType;
             if (returnType is PredefinedTypeSyntax predefinedTypeSyntax)
             {
-                if (predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword)) {
-                    var a = 1;
-                taskSyntax = SyntaxFactory.IdentifierName("Task");
-                }
                 var lt = method.GetLeadingTrivia();
-                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(taskSyntax).WithLeadingTrivia(lt); // Also add the trivia again
+                taskSyntax = SyntaxFactory.IdentifierName("Task");
+                if (predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
+                {
+                    newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(taskSyntax).WithLeadingTrivia(lt); // Also add the trivia again
+                }
+                else
+                {
+                    // Make a generic Task type
+                    var intType = SyntaxFactory.PredefinedType(predefinedTypeSyntax.Keyword);
+                    var syntaxList = SyntaxFactory.SeparatedList<TypeSyntax>(new[] { intType });
+                    var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
+                    newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType).WithLeadingTrivia(lt); // Also add the trivia again
+                }
+            }
+            else
+            {
+                // Make a gneric Task
             }
 
             var asyncAwaitRoot = awaitRoot.ReplaceNode(updatedMethod, newMethod);
