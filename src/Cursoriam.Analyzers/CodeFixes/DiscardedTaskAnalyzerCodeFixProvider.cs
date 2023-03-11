@@ -3,9 +3,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,56 +35,97 @@ namespace Cursoriam.Analyzers.CodeFixes
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type assignment expression identified by the diagnostic.
+            // The property Parent gets the Node of the Token
             var assignment = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<AssignmentExpressionSyntax>().First();
 
-            // Find the method modifiers
-            PredefinedTypeSyntax typeSyntax = default;
-            if (diagnostic.AdditionalLocations.Any())
+            // TODO: what if the discard is in a lambda or local function?
+            var method = root.FindToken(diagnosticSpan.Start).Parent.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+            if (method.Modifiers.Any(m => m.IsKind(SyntaxKind.AsyncKeyword)))
             {
-                var modifiersSpan = diagnostic.AdditionalLocations.First().SourceSpan;
-                if (!modifiersSpan.IsEmpty)
-                {
-                    // Vervang void door Task, voeg async ervoor
-                    var q = root.FindToken(modifiersSpan.Start).Parent.AncestorsAndSelf();
-                    typeSyntax = q.OfType<PredefinedTypeSyntax>().First(); // Of TypeSyntax?
-                }
+                method = null;
             }
-
             // Register a code action that will invoke the fix.
-            context.RegisterCodeFix(
-                CodeAction.Create(
+            var codeAction = CodeAction.Create(
                     title: CodeFixResources.CodeFixTitle,
-                    createChangedDocument: c => AddAwaitAsync(context.Document, assignment, typeSyntax, c),
-                    equivalenceKey: nameof(CodeFixResources.CodeFixTitle)),
-                diagnostic);
+                    createChangedDocument: cancellationToken => AddAwaitAsync(context.Document, assignment, method, cancellationToken),
+                    equivalenceKey: nameof(CodeFixResources.CodeFixTitle)
+                );
+            context.RegisterCodeFix(codeAction, diagnostic);
         }
 
-        private async Task<Document> AddAwaitAsync(Document document, AssignmentExpressionSyntax assignment, PredefinedTypeSyntax typeSyntax, CancellationToken cancellationToken)
+
+        private async Task<Document> AddAwaitAsync(Document document, AssignmentExpressionSyntax assignment, MethodDeclarationSyntax method, CancellationToken cancellationToken)
         {
             var expressionSyntax = assignment.Right;
-            var awaitExpressionSyntax = SyntaxFactory.AwaitExpression(expressionSyntax);
+            var awaitExpressionSyntax = SyntaxFactory.AwaitExpression(expressionSyntax).WithTriviaFrom(assignment);
 
-            var nodesToReplace = new List<SyntaxNode>();
-            var lookUpNodes = new Dictionary<SyntaxNode, SyntaxNode>();
+            var originalRoot = await document.GetSyntaxRootAsync(cancellationToken);
 
-            nodesToReplace.Add(assignment);
-            lookUpNodes.Add(assignment, awaitExpressionSyntax);
+            // First replace the discard with an await
+            var awaitRoot = originalRoot.ReplaceNode(assignment, awaitExpressionSyntax);
 
-            var oldRoot = await document.GetSyntaxRootAsync(cancellationToken);
-
-            if (typeSyntax?.Parent is MethodDeclarationSyntax methodSyntax)
+            // Check for method modifiers and return type to adjust
+            if (method is null)
             {
-                var taskSyntax = SyntaxFactory.IdentifierName("Task");
-                var newModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.AsyncKeyword)).AddRange(methodSyntax.Modifiers);
-
-                var modifiedMethodSyntax = methodSyntax.ReplaceNode(assignment, awaitExpressionSyntax).WithModifiers(newModifiers).WithReturnType(taskSyntax);
-
-                return document.WithSyntaxRoot(oldRoot.ReplaceNode(methodSyntax, modifiedMethodSyntax));
+                // There is no containing method, or RegisterCodeFixesAsync concluded there's already an async modifier
+                return document.WithSyntaxRoot(awaitRoot);
             }
 
-            var newRoot = oldRoot.ReplaceNode(assignment, awaitExpressionSyntax);
+            // Find the updated method in the new root
+            var location = method.GetLocation().SourceSpan.Start;
+            var parentToken = awaitRoot.FindToken(location).Parent;
+            var updatedMethod = parentToken.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+            if (updatedMethod is null)
+            {
+                // This should not happen, but a null check is always prudent
+                return document.WithSyntaxRoot(awaitRoot);
+            }
 
-            return document.WithSyntaxRoot(newRoot);
+            var returnType = method.ReturnType;
+            // If the return type is already a Task, don't add the async keyword, because the we have also change the "return"
+            var typeText = returnType.GetText().ToString();
+            if (typeText.StartsWith("Task"))
+            {
+                return document.WithSyntaxRoot(awaitRoot);
+            }
+
+            // Add async to the updated method
+            var newModifiers = SyntaxFactory.TokenList(
+                SyntaxFactory.Token(SyntaxKind.AsyncKeyword)
+            ).AddRange(method.Modifiers.Select(m => m.WithoutTrivia())); // Remove the trivia, otherwise it will end up between the async modifier and the next modifier
+
+
+            // The replace the return type Task or Task<>, if necessary
+            MethodDeclarationSyntax newMethod = null;
+            IdentifierNameSyntax taskSyntax = SyntaxFactory.IdentifierName("Task");
+            var lt = method.GetLeadingTrivia();
+            //       var returnType = method.ReturnType;
+            if (returnType is PredefinedTypeSyntax predefinedTypeSyntax)
+            {
+                if (predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
+                {
+                    newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(taskSyntax).WithLeadingTrivia(lt); // Also add the trivia again
+                }
+                else
+                {
+                    // Make a generic Task
+                    var predefinedType = SyntaxFactory.PredefinedType(predefinedTypeSyntax.Keyword);
+                    var syntaxList = SyntaxFactory.SeparatedList<TypeSyntax>(new[] { predefinedTypeSyntax });
+                    var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
+                    newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType).WithLeadingTrivia(lt); // Also add the trivia again
+                }
+            }
+            else
+            {
+                // Make a generic Task
+                var syntaxList = SyntaxFactory.SeparatedList<TypeSyntax>(new[] { returnType });
+                var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
+                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType).WithLeadingTrivia(lt); // Also add the trivia again
+            }
+
+            var asyncAwaitRoot = awaitRoot.ReplaceNode(updatedMethod, newMethod);
+
+            return document.WithSyntaxRoot(asyncAwaitRoot);
         }
     }
 }
