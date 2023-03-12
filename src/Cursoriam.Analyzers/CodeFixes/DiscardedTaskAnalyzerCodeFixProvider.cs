@@ -61,58 +61,85 @@ namespace Cursoriam.Analyzers.CodeFixes
 
             var originalRoot = await document.GetSyntaxRootAsync(cancellationToken);
 
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            // If the return type is Task, the _ discard be removed.
+            // For the return type Task<T>, the discard can stay in place.
+            var typeInfo = semanticModel.GetTypeInfo(expressionSyntax);
+            SyntaxNode rootWithAwaitAdded;
+            if (typeInfo.Type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType && !namedTypeSymbol.IsUnboundGenericType)
+            {
+                //  We keep the discard
+                var na = SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, assignment.Left, awaitExpressionSyntax.WithoutTrivia());
+                rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, na);
+            }
+            else
+            {
+                // We remove the discard
+                rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, awaitExpressionSyntax);
+            }
             // First replace the discard with an await
-            var awaitRoot = originalRoot.ReplaceNode(assignment, awaitExpressionSyntax);
 
             // Check for method modifiers and return type to adjust
             if (method is null)
             {
                 // There is no containing method, or RegisterCodeFixesAsync concluded there's already an async modifier
-                return document.WithSyntaxRoot(awaitRoot);
+                return document.WithSyntaxRoot(rootWithAwaitAdded);
             }
 
             // Find the updated method in the new root
             var location = method.GetLocation().SourceSpan.Start;
-            var parentToken = awaitRoot.FindToken(location).Parent;
+            var parentToken = rootWithAwaitAdded.FindToken(location).Parent;
             var updatedMethod = parentToken.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             if (updatedMethod is null)
             {
                 // This should not happen, but a null check is always prudent
-                return document.WithSyntaxRoot(awaitRoot);
+                return document.WithSyntaxRoot(rootWithAwaitAdded);
             }
 
             var returnType = method.ReturnType;
-            // If the return type is already a Task, don't add the async keyword, because the we have also change the "return"
+            // If the return type of the containing method/function is already a Task, don't add the async keyword, because the we have also change the "return"
             var typeText = returnType.GetText().ToString();
             if (typeText.StartsWith("Task"))
             {
-                return document.WithSyntaxRoot(awaitRoot);
+                return document.WithSyntaxRoot(rootWithAwaitAdded);
             }
 
             // Add async to the updated method
-            var newModifiers = SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.AsyncKeyword)
-            ).AddRange(method.Modifiers.Select(m => m.WithoutTrivia())); // Remove the trivia, otherwise it will end up between the async modifier and the next modifier
+            // Remove the leading trivia from the first modifier, because async will placed before that, and genererally
+            // we want to put the trivia before the async
+            SyntaxTokenList newModifiers;
+            if (method.Modifiers.Any())
+            {
+                var firstModifier = method.Modifiers.First();
+                var tailModifiers = method.Modifiers.Skip(1);
 
+                var newFirstModifier = firstModifier.WithoutTrivia().WithTrailingTrivia(firstModifier.TrailingTrivia);
+                newModifiers = SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithLeadingTrivia(firstModifier.LeadingTrivia)
+                ).Add(newFirstModifier).AddRange(tailModifiers);
+            }
+            else
+            {
+                newModifiers = SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword)
+                );
+            }
 
             // The replace the return type Task or Task<>, if necessary
-            MethodDeclarationSyntax newMethod = null;
+            MethodDeclarationSyntax newMethod;
             IdentifierNameSyntax taskSyntax = SyntaxFactory.IdentifierName("Task");
-            var lt = method.GetLeadingTrivia();
-            //       var returnType = method.ReturnType;
             if (returnType is PredefinedTypeSyntax predefinedTypeSyntax)
             {
                 if (predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
                 {
-                    newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(taskSyntax).WithLeadingTrivia(lt); // Also add the trivia again
+                    newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(taskSyntax); // Also add the trivia again
                 }
                 else
                 {
                     // Make a generic Task
-                    var predefinedType = SyntaxFactory.PredefinedType(predefinedTypeSyntax.Keyword);
                     var syntaxList = SyntaxFactory.SeparatedList<TypeSyntax>(new[] { predefinedTypeSyntax });
                     var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
-                    newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType).WithLeadingTrivia(lt); // Also add the trivia again
+                    newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType);
                 }
             }
             else
@@ -120,10 +147,10 @@ namespace Cursoriam.Analyzers.CodeFixes
                 // Make a generic Task
                 var syntaxList = SyntaxFactory.SeparatedList<TypeSyntax>(new[] { returnType });
                 var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
-                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType).WithLeadingTrivia(lt); // Also add the trivia again
+                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType);
             }
 
-            var asyncAwaitRoot = awaitRoot.ReplaceNode(updatedMethod, newMethod);
+            var asyncAwaitRoot = rootWithAwaitAdded.ReplaceNode(updatedMethod, newMethod);
 
             return document.WithSyntaxRoot(asyncAwaitRoot);
         }
