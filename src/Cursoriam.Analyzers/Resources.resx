@@ -122,11 +122,11 @@
     <comment>An optional longer localizable description of the diagnostic.</comment>
   </data>
   <data name="AnalyzerMessageFormat" xml:space="preserve">
-    <value>Do not discard a Task.</value>
+    <value>Do not discard a Task</value>
     <comment>The format-able message the diagnostic displays.</comment>
   </data>
   <data name="AnalyzerTitle" xml:space="preserve">
-    <value>Do not discard a Task.</value>
+    <value>Do not discard a Task</value>
     <comment>The title of the diagnostic.</comment>
   </data>
 </root>

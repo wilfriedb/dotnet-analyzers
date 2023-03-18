@@ -70,7 +70,7 @@ namespace Cursoriam.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do not discard a Task..
+        ///   Looks up a localized string similar to Do not discard a Task.
         /// </summary>
         internal static string AnalyzerMessageFormat {
             get {
@@ -79,7 +79,7 @@ namespace Cursoriam.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do not discard a Task..
+        ///   Looks up a localized string similar to Do not discard a Task.
         /// </summary>
         internal static string AnalyzerTitle {
             get {
