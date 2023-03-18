@@ -36,14 +36,41 @@ namespace Cursoriam.Analyzers.CodeFixes
 
             // Find the type assignment expression identified by the diagnostic.
             // The property Parent gets the Node of the Token
-            var assignment = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<AssignmentExpressionSyntax>().First();
-
-            // TODO: what if the discard is in a lambda or local function?
-            var method = root.FindToken(diagnosticSpan.Start).Parent.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-            if (method.Modifiers.Any(m => m.IsKind(SyntaxKind.AsyncKeyword)))
+            var assignment = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<AssignmentExpressionSyntax>().FirstOrDefault();
+            if (assignment is null)
             {
+                return;
+            }
+
+            // Find the parent method of this assignment
+            MethodDeclarationSyntax method = null;
+            SyntaxNode parent = assignment.Parent;
+            while (parent != null)
+            {
+                if (parent is MethodDeclarationSyntax syntax)
+                {
+                    method = syntax;
+                }
+                if (parent is LocalFunctionStatementSyntax)
+                {
+                    // The parent is a local function. We won't fix the signature of a local function for now
+                    break;
+                }
+                else if (parent is ParenthesizedLambdaExpressionSyntax)
+                {
+                    // The parent is a lambda expression. We won't fix the signature of a lambda expression for now
+                    break;
+                }
+
+                parent = parent.Parent;
+            }
+
+            if (method != null && method.Modifiers.Any(m => m.IsKind(SyntaxKind.AsyncKeyword)))
+            {
+                // Methods is already async, no fix needed
                 method = null;
             }
+
             // Register a code action that will invoke the fix.
             var codeAction = CodeAction.Create(
                     title: CodeFixResources.CodeFixTitle,
@@ -57,29 +84,28 @@ namespace Cursoriam.Analyzers.CodeFixes
         private async Task<Document> AddAwaitAsync(Document document, AssignmentExpressionSyntax assignment, MethodDeclarationSyntax method, CancellationToken cancellationToken)
         {
             var expressionSyntax = assignment.Right;
-            var awaitExpressionSyntax = SyntaxFactory.AwaitExpression(expressionSyntax).WithTriviaFrom(assignment);
+            var awaitExpressionSyntax = SyntaxFactory.AwaitExpression(expressionSyntax);
 
             var originalRoot = await document.GetSyntaxRootAsync(cancellationToken);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-            // If the return type is Task, the _ discard be removed.
-            // For the return type Task<T>, the discard can stay in place.
             var typeInfo = semanticModel.GetTypeInfo(expressionSyntax);
             SyntaxNode rootWithAwaitAdded;
+            // If the return type is Task, the discard can be removed.
+            // For the return type Task<T>, the discard can stay in place.
             if (typeInfo.Type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType && !namedTypeSymbol.IsUnboundGenericType)
             {
                 //  We keep the discard
-                var na = SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, assignment.Left, awaitExpressionSyntax.WithoutTrivia());
+                var na = SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, assignment.Left, awaitExpressionSyntax).WithTriviaFrom(assignment);
                 rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, na);
             }
             else
             {
                 // We remove the discard
-                rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, awaitExpressionSyntax);
+                rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, awaitExpressionSyntax.WithTriviaFrom(assignment));
             }
-            // First replace the discard with an await
 
-            // Check for method modifiers and return type to adjust
+            // Check for the containing method modifiers and return type to adjust
             if (method is null)
             {
                 // There is no containing method, or RegisterCodeFixesAsync concluded there's already an async modifier
@@ -92,14 +118,14 @@ namespace Cursoriam.Analyzers.CodeFixes
             var updatedMethod = parentToken.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             if (updatedMethod is null)
             {
-                // This should not happen, but a null check is always prudent
+                // This should not happen, but a null check is always prudent. We just return the updated expression
                 return document.WithSyntaxRoot(rootWithAwaitAdded);
             }
 
             var returnType = method.ReturnType;
             // If the return type of the containing method/function is already a Task, don't add the async keyword, because the we have also change the "return"
             var typeText = returnType.GetText().ToString();
-            if (typeText.StartsWith("Task"))
+            if (typeText.StartsWith("Task")) // Works with Task and Task<T>
             {
                 return document.WithSyntaxRoot(rootWithAwaitAdded);
             }
@@ -128,24 +154,14 @@ namespace Cursoriam.Analyzers.CodeFixes
             // The replace the return type Task or Task<>, if necessary
             MethodDeclarationSyntax newMethod;
             IdentifierNameSyntax taskSyntax = SyntaxFactory.IdentifierName("Task");
-            if (returnType is PredefinedTypeSyntax predefinedTypeSyntax)
+            if (returnType is PredefinedTypeSyntax predefinedTypeSyntax && predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
             {
-                if (predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
-                {
-                    newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(taskSyntax); // Also add the trivia again
-                }
-                else
-                {
-                    // Make a generic Task
-                    var syntaxList = SyntaxFactory.SeparatedList<TypeSyntax>(new[] { predefinedTypeSyntax });
-                    var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
-                    newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType);
-                }
+                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(taskSyntax); // Also automatically adds the trivia again
             }
             else
             {
                 // Make a generic Task
-                var syntaxList = SyntaxFactory.SeparatedList<TypeSyntax>(new[] { returnType });
+                var syntaxList = SyntaxFactory.SeparatedList(new[] { returnType });
                 var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
                 newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType);
             }

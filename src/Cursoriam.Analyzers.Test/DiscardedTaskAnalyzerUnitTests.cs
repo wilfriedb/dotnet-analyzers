@@ -261,7 +261,7 @@ internal class TestSubject
         // var diagnosticId = "CS4032"; // error CS4032: The 'await' operator can only be used within an async method. 
         // DiagnosticDescriptor?
         var expectedDiagnostic = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0); // Location 0 is the {|#0: |} syntax
-        await VerifyCS.VerifyCodeFixAsync(testCode, expectedDiagnostic, fixedTestCode); 
+        await VerifyCS.VerifyCodeFixAsync(testCode, expectedDiagnostic, fixedTestCode);
     }
 
 
@@ -433,5 +433,65 @@ internal class TestSubject
         var expectedDiagnostic = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0); // Location 0 is the {|#0: |} syntax
         await VerifyCS.VerifyCodeFixAsync(testCode, expectedDiagnostic, fixedTestCode);
     }
+    [TestMethod]
+    [Ignore] // I can't get this test working now
+    public async Task TestLocalFunction_OneWarningAndFixAsync()
+    {
+        var testCode = @"
+using System.Threading.Tasks;
+namespace ConsoleApplication1;
 
+internal class TestSubject
+{
+    async public Task<int> TestMethodAsync()
+    {
+        return await Task.FromResult(0);
+    }
+
+    // Comment1 must stay in place
+    public void MethodWithCodeToAnalyze()
+    {
+        var t = new TestSubject();
+
+        // Comment2 must not disappear
+        void f()
+        {
+            {|#0:_ = t.TestMethodAsync()|};
+        }
+
+        f();
+    }
+
+}";
+
+        var fixedTestCode = @"
+using System.Threading.Tasks;
+namespace ConsoleApplication1;
+
+internal class TestSubject
+{
+    async public Task<int> TestMethodAsync()
+    {
+        return await Task.FromResult(0);
+    }
+
+    // Comment1 must stay in place
+    public void MethodWithCodeToAnalyze()
+    {
+        var t = new TestSubject();
+
+        // Comment2 must not disappear
+        void f()
+        {
+            {|#0:_ = await t.TestMethodAsync()|};
+        }
+
+        f();
+    }
+}";
+
+        var expectedDiagnostic = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0); // Location 0 is the {|#0: |} syntax
+        await VerifyCS.VerifyCodeFixAsync(testCode, expectedDiagnostic, fixedTestCode);
+    }
 }
+
