@@ -25,6 +25,11 @@ async public Task Method1()
 }
 ```
 
+Known issues:
+
+- Does only provide a partial fix for methods that already return a Task, but are not async
+- Does only provide a partial fix for local functions and lambdas
+
 Two analyzers for threading and the async/await pattern which I like and got inspiration from:
 
 [Microsoft.VisualStudio.Threading.Analyzers](https://www.nuget.org/packages/Microsoft.VisualStudio.Threading.Analyzers/)  
