@@ -91,7 +91,7 @@ internal class TestSubject
     }
 
     // Comment1 must stay in place
-    async public Task MethodWithCodeToAnalyze()
+    public async Task MethodWithCodeToAnalyze()
     {
         var t = new TestSubject();
         // Comment2 must not disappear
@@ -143,7 +143,7 @@ internal class TestSubject
     }
 
     // Comment1 must stay in place
-    async public Task MethodWithCodeToAnalyze()
+    public async Task MethodWithCodeToAnalyze()
     {
         var t = new TestSubject();
         // Comment2 must not disappear
@@ -301,7 +301,7 @@ internal class TestSubject
         return Task.CompletedTask;
     }
 
-    async public Task<int> MethodWithCodeToAnalyze()
+    public async Task<int> MethodWithCodeToAnalyze()
     {
         var t = new TestSubject();
         await t.TestMethod();
@@ -358,7 +358,7 @@ internal class TestSubject
         return Task.FromResult(0);
     }
 
-    async public Task<UserDefinedClass> MethodWithCodeToAnalyze()
+    public async Task<UserDefinedClass> MethodWithCodeToAnalyze()
     {
         var t = new TestSubject();
         _ = await t.TestMethod();
@@ -423,7 +423,7 @@ internal class TestSubject
     // Comment1 should stay here
     [DoNothing]
     // Comment2 should stay here
-    async public Task MethodWithCodeToAnalyze()
+    public async Task MethodWithCodeToAnalyze()
     {
         var t = new TestSubject();
         await t.TestMethodAsync();
@@ -493,5 +493,112 @@ internal class TestSubject
         var expectedDiagnostic = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0); // Location 0 is the {|#0: |} syntax
         await VerifyCS.VerifyCodeFixAsync(testCode, expectedDiagnostic, fixedTestCode);
     }
-}
 
+
+    [TestMethod]
+    public async Task TestMostSimpleVoidCodeWithoutModifier_OneWarningAndFixAsync()
+    {
+        var testCode = @"
+using System.Threading.Tasks;
+
+namespace ConsoleApplication1;
+
+internal class TestSubject
+{
+    public Task TestMethodAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    // Comment1 must stay in place
+    void MethodWithCodeToAnalyze()
+    {
+        var t = new TestSubject();
+        // Comment2 must not disappear
+        {|#0:_ = t.TestMethodAsync()|};
+        // Comment3 must not disappear
+    }
+}";
+
+        var fixedTestCode = @"
+using System.Threading.Tasks;
+
+namespace ConsoleApplication1;
+
+internal class TestSubject
+{
+    public Task TestMethodAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    // Comment1 must stay in place
+    async Task MethodWithCodeToAnalyze()
+    {
+        var t = new TestSubject();
+        // Comment2 must not disappear
+        await t.TestMethodAsync();
+        // Comment3 must not disappear
+    }
+}";
+
+        var expectedDiagnostic = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0); // Location 0 is the {|#0: |} syntax
+        await VerifyCS.VerifyCodeFixAsync(testCode, expectedDiagnostic, fixedTestCode);
+    }
+
+    [TestMethod]
+    public async Task TestMostSimpleIntCodeWithoutModifier_OneWarningAndFixAsync()
+    {
+        var testCode = @"
+using System.Threading.Tasks;
+
+namespace ConsoleApplication1;
+
+internal class TestSubject
+{
+    public Task TestMethodAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    // Comment1 must stay in place
+    int MethodWithCodeToAnalyze()
+    // Comment2 must not disappear
+    {
+        var t = new TestSubject();
+        {|#0:_ = t.TestMethodAsync()|};
+
+        return 0;
+    }
+    // Comment 3 must stay in place
+}";
+
+        var fixedTestCode = @"
+using System.Threading.Tasks;
+
+namespace ConsoleApplication1;
+
+internal class TestSubject
+{
+    public Task TestMethodAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    // Comment1 must stay in place
+    async Task<int> MethodWithCodeToAnalyze()
+    // Comment2 must not disappear
+    {
+        var t = new TestSubject();
+        await t.TestMethodAsync();
+
+        return 0;
+    }
+    // Comment 3 must stay in place
+}";
+
+        var expectedDiagnostic = VerifyCS.Diagnostic(DiscardedTaskAnalyzer.DiagnosticId).WithLocation(0); // Location 0 is the {|#0: |} syntax
+        await VerifyCS.VerifyCodeFixAsync(testCode, expectedDiagnostic, fixedTestCode);
+    }
+
+}
