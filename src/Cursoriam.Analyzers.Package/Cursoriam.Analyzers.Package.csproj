@@ -15,7 +15,7 @@
     <RepositoryUrl>https://github.com/wilfriedb/dotnet-analyzers</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>A C# analyzer that flags discarded Tasks</Description>
-    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <PackageReleaseNotes>Fix the ordering of the modifiers</PackageReleaseNotes>
     <Copyright>Copyright 2023 Cursoriam</Copyright>
     <PackageTags>analyzer;analyzers</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>
