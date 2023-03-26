@@ -9,15 +9,13 @@
 
   <PropertyGroup>
     <PackageId>Cursoriam.Analyzers</PackageId>
-    <PackageVersion>1.0.0.0</PackageVersion>
+    <PackageVersion>1.0.1.0</PackageVersion>
     <Authors>Wilfried Boos</Authors>
-    <!--<PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>-->
     <PackageProjectUrl>https://github.com/wilfriedb/dotnet-analyzers</PackageProjectUrl>
-    <!--<PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>-->
     <RepositoryUrl>https://github.com/wilfriedb/dotnet-analyzers</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>A C# analyzer that flags discarded Tasks</Description>
-    <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
+    <PackageReleaseNotes>Fix the ordering of the modifiers</PackageReleaseNotes>
     <Copyright>Copyright 2023 Cursoriam</Copyright>
     <PackageTags>analyzer;analyzers</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>

@@ -83,27 +83,7 @@ namespace Cursoriam.Analyzers.CodeFixes
 
         private async Task<Document> AddAwaitAsync(Document document, AssignmentExpressionSyntax assignment, MethodDeclarationSyntax method, CancellationToken cancellationToken)
         {
-            var expressionSyntax = assignment.Right;
-            var awaitExpressionSyntax = SyntaxFactory.AwaitExpression(expressionSyntax);
-
-            var originalRoot = await document.GetSyntaxRootAsync(cancellationToken);
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-            var typeInfo = semanticModel.GetTypeInfo(expressionSyntax);
-            SyntaxNode rootWithAwaitAdded;
-            // If the return type is Task, the discard can be removed.
-            // For the return type Task<T>, the discard can stay in place.
-            if (typeInfo.Type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType && !namedTypeSymbol.IsUnboundGenericType)
-            {
-                //  We keep the discard
-                var na = SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, assignment.Left, awaitExpressionSyntax).WithTriviaFrom(assignment);
-                rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, na);
-            }
-            else
-            {
-                // We remove the discard
-                rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, awaitExpressionSyntax.WithTriviaFrom(assignment));
-            }
+            var rootWithAwaitAdded = await GetAwaitedAssignmentAsync(document, assignment, cancellationToken);
 
             // Check for the containing method modifiers and return type to adjust
             if (method is null)
@@ -122,7 +102,7 @@ namespace Cursoriam.Analyzers.CodeFixes
                 return document.WithSyntaxRoot(rootWithAwaitAdded);
             }
 
-            var returnType = method.ReturnType;
+            var returnType = method.ReturnType.WithoutTrivia();
             // If the return type of the containing method/function is already a Task, don't add the async keyword, because the we have also change the "return"
             var typeText = returnType.GetText().ToString();
             if (typeText.StartsWith("Task")) // Works with Task and Task<T>
@@ -130,45 +110,66 @@ namespace Cursoriam.Analyzers.CodeFixes
                 return document.WithSyntaxRoot(rootWithAwaitAdded);
             }
 
-            // Add async to the updated method
+            // Add async to the updated method, after the last modifer, before the return type
             // Remove the leading trivia from the first modifier, because async will placed before that, and genererally
             // we want to put the trivia before the async
             SyntaxTokenList newModifiers;
             if (method.Modifiers.Any())
             {
-                var firstModifier = method.Modifiers.First();
-                var tailModifiers = method.Modifiers.Skip(1);
-
-                var newFirstModifier = firstModifier.WithoutTrivia().WithTrailingTrivia(firstModifier.TrailingTrivia);
-                newModifiers = SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithLeadingTrivia(firstModifier.LeadingTrivia)
-                ).Add(newFirstModifier).AddRange(tailModifiers);
+                newModifiers = SyntaxFactory.TokenList(method.Modifiers)
+                    .Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword));
             }
             else
             {
-                newModifiers = SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword)
-                );
+                newModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.AsyncKeyword));
             }
 
-            // The replace the return type Task or Task<>, if necessary
+            // Then replace the return type Task or Task<>, if necessary
             MethodDeclarationSyntax newMethod;
             IdentifierNameSyntax taskSyntax = SyntaxFactory.IdentifierName("Task");
             if (returnType is PredefinedTypeSyntax predefinedTypeSyntax && predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.VoidKeyword))
             {
-                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(taskSyntax); // Also automatically adds the trivia again
+                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(taskSyntax).WithLeadingTrivia(method.GetLeadingTrivia()); ; // Also automatically adds the trivia again
             }
             else
             {
                 // Make a generic Task
                 var syntaxList = SyntaxFactory.SeparatedList(new[] { returnType });
                 var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
-                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType);
+                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType)
+                    .WithLeadingTrivia(method.GetLeadingTrivia());
             }
 
             var asyncAwaitRoot = rootWithAwaitAdded.ReplaceNode(updatedMethod, newMethod);
 
             return document.WithSyntaxRoot(asyncAwaitRoot);
+        }
+
+        private static async Task<SyntaxNode> GetAwaitedAssignmentAsync(Document document, AssignmentExpressionSyntax assignment, CancellationToken cancellationToken)
+        {
+            var expressionSyntax = assignment.Right;
+            var awaitExpressionSyntax = SyntaxFactory.AwaitExpression(expressionSyntax);
+
+            var originalRoot = await document.GetSyntaxRootAsync(cancellationToken);
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            var typeInfo = semanticModel.GetTypeInfo(expressionSyntax);
+            SyntaxNode rootWithAwaitAdded;
+            // If the return type is Task, the discard can be removed.
+            // For the return type Task<T>, the discard can stay in place.
+            if (typeInfo.Type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType && !namedTypeSymbol.IsUnboundGenericType)
+            {
+                //  We keep the discard
+                var newAssignment = SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, assignment.Left, awaitExpressionSyntax).WithTriviaFrom(assignment);
+                rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, newAssignment);
+            }
+            else
+            {
+                // We remove the discard
+                rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, awaitExpressionSyntax.WithTriviaFrom(assignment));
+            }
+
+            return rootWithAwaitAdded;
         }
     }
 }
