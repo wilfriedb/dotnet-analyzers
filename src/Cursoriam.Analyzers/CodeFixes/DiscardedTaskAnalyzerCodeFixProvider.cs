@@ -159,8 +159,8 @@ namespace Cursoriam.Analyzers.CodeFixes
             if (typeInfo.Type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType && !namedTypeSymbol.IsUnboundGenericType)
             {
                 //  We keep the discard
-                var na = SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, assignment.Left, awaitExpressionSyntax).WithTriviaFrom(assignment);
-                rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, na);
+                var newAssignment = SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, assignment.Left, awaitExpressionSyntax).WithTriviaFrom(assignment);
+                rootWithAwaitAdded = originalRoot.ReplaceNode(assignment, newAssignment);
             }
             else
             {
