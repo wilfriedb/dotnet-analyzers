@@ -136,7 +136,8 @@ namespace Cursoriam.Analyzers.CodeFixes
                 // Make a generic Task
                 var syntaxList = SyntaxFactory.SeparatedList(new[] { returnType });
                 var genericTaskType = SyntaxFactory.GenericName(taskSyntax.Identifier, SyntaxFactory.TypeArgumentList(syntaxList));
-                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType).WithLeadingTrivia(method.GetLeadingTrivia());
+                newMethod = updatedMethod.WithModifiers(newModifiers).WithReturnType(genericTaskType)
+                    .WithLeadingTrivia(method.GetLeadingTrivia());
             }
 
             var asyncAwaitRoot = rootWithAwaitAdded.ReplaceNode(updatedMethod, newMethod);
